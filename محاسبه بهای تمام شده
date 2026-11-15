@@ -1,0 +1,229 @@
+
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>محاسبه بهای تمام‌شده</title>
+<style>
+*{box-sizing:border-box}
+body{margin:0;background:#f3f7f3;color:#20352a;font-family:Tahoma,Arial,sans-serif;padding:18px}
+main{max-width:650px;margin:auto}
+header{background:#167447;color:white;padding:25px 18px;border-radius:18px;margin-bottom:18px}
+h1{font-size:23px;margin:0 0 9px}
+header p{margin:0;font-size:14px}
+.card{background:white;border-radius:15px;padding:18px;margin-bottom:16px;box-shadow:0 3px 14px #163c2410}
+h2{font-size:18px;margin:0 0 17px}
+label{display:block;font-size:13px;margin:13px 0 7px}
+input{width:100%;padding:12px;border:1px solid #d6e1d9;border-radius:9px;font-size:16px;background:#fff}
+button{border:0;border-radius:9px;padding:12px 16px;font-size:14px;cursor:pointer}
+.primary{background:#167447;color:white;width:100%;margin-top:17px}
+.secondary{background:#e6f2e9;color:#17623d}
+.danger{background:#fdeaea;color:#a22}
+.stats{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.stat{background:#eaf5ed;padding:16px;border-radius:12px}
+.stat small{display:block;color:#587263;margin-bottom:8px}
+.stat strong{font-size:18px}
+.item{border:1px solid #e2eae4;padding:13px;border-radius:11px;margin-top:12px}
+.item h3{margin:0 0 9px;font-size:16px}
+.item p{font-size:13px;line-height:2;margin:0}
+.actions{display:flex;gap:8px;margin-top:10px}
+.actions button{flex:1}
+.empty{text-align:center;color:#819087;padding:20px}
+.note{font-size:12px;color:#718078;line-height:1.9}
+</style>
+</head>
+<body>
+<main>
+<header>
+<h1>محاسبه بهای تمام‌شده</h1>
+<p>مدیریت هزینه و محاسبه دقیق بهای محصولات تولیدی</p>
+</header>
+
+<section class="card">
+<h2 id="formTitle">ثبت محصول جدید</h2>
+<form id="productForm">
+<label>نام محصول</label>
+<input id="name" required placeholder="مثلاً میز چوبی">
+<label>هزینه مواد اولیه (ریال)</label>
+<input id="material" type="number" min="0" value="0" required>
+<label>دستمزد مستقیم (ریال)</label>
+<input id="labor" type="number" min="0" value="0" required>
+<label>هزینه سربار (ریال)</label>
+<input id="overhead" type="number" min="0" value="0" required>
+<label>تعداد محصول سالم</label>
+<input id="quantity" type="number" min="1" step="1" required placeholder="مثلاً 10">
+<button class="primary" type="submit" id="saveButton">ذخیره محصول</button>
+<button class="secondary" type="button" id="cancelEdit" hidden>لغو ویرایش</button>
+</form>
+</section>
+
+<section class="card">
+<h2>خلاصه هزینه‌ها</h2>
+<div class="stats">
+<div class="stat"><small>مجموع هزینه‌ها</small><strong id="totalCost">۰ ریال</strong></div>
+<div class="stat"><small>تعداد محصولات</small><strong id="productCount">۰</strong></div>
+<div class="stat"><small>مجموع تعداد سالم</small><strong id="totalQuantity">۰</strong></div>
+<div class="stat"><small>میانگین بهای واحد</small><strong id="averageCost">۰ ریال</strong></div>
+</div>
+</section>
+
+<section class="card">
+<h2>سوابق محصولات</h2>
+<div id="history"><div class="empty">هنوز محصولی ثبت نشده است.</div></div>
+</section>
+
+<p class="note">اطلاعات این نسخه آزمایشی در حافظه مرورگر همین دستگاه ذخیره می‌شود. با پاک‌کردن داده‌های مرورگر ممکن است اطلاعات از بین برود. فعلاً همگام‌سازی بین دستگاه‌ها فعال نیست.</p>
+</main>
+
+<script>
+const $ = id => document.getElementById(id);
+const number = value => Number(value || 0);
+const format = value => Math.round(value).toLocaleString('fa-IR');
+
+let products = [];
+let editingId = null;
+
+try {
+  products = JSON.parse(localStorage.getItem('costai_products') || '[]');
+  if (!Array.isArray(products)) products = [];
+} catch {
+  products = [];
+}
+
+function persist() {
+  localStorage.setItem('costai_products', JSON.stringify(products));
+}
+
+function resetForm() {
+  $('productForm').reset();
+  $('material').value = 0;
+  $('labor').value = 0;
+  $('overhead').value = 0;
+  editingId = null;
+  $('formTitle').textContent = 'ثبت محصول جدید';
+  $('saveButton').textContent = 'ذخیره محصول';
+  $('cancelEdit').hidden = true;
+}
+
+function render() {
+  const total = products.reduce((s,p) => s+p.material+p.labor+p.overhead,0);
+  const quantity = products.reduce((s,p) => s+p.quantity,0);
+
+  $('totalCost').textContent = format(total) + ' ریال';
+  $('productCount').textContent = format(products.length);
+  $('totalQuantity').textContent = format(quantity);
+  $('averageCost').textContent = format(quantity ? total/quantity : 0) + ' ریال';
+
+  const history = $('history');
+  history.replaceChildren();
+
+  if (!products.length) {
+    const empty = document.createElement('div');
+    empty.className = 'empty';
+    empty.textContent = 'هنوز محصولی ثبت نشده است.';
+    history.append(empty);
+    return;
+  }
+
+  products.forEach(p => {
+    const totalCost = p.material+p.labor+p.overhead;
+    const item = document.createElement('div');
+    item.className = 'item';
+
+    const title = document.createElement('h3');
+    title.textContent = p.name;
+
+    const details = document.createElement('p');
+    details.textContent =
+      'مواد اولیه: '+format(p.material)+' ریال' +
+      ' | دستمزد: '+format(p.labor)+' ریال' +
+      ' | سربار: '+format(p.overhead)+' ریال';
+
+    const summary = document.createElement('p');
+    summary.textContent =
+      'تعداد سالم: '+format(p.quantity) +
+      ' | مجموع هزینه: '+format(totalCost)+' ریال' +
+      ' | بهای هر واحد: '+format(totalCost/p.quantity)+' ریال';
+
+    const actions = document.createElement('div');
+    actions.className = 'actions';
+
+    const edit = document.createElement('button');
+    edit.className = 'secondary';
+    edit.textContent = 'ویرایش';
+    edit.addEventListener('click', () => editProduct(p.id));
+
+    const del = document.createElement('button');
+    del.className = 'danger';
+    del.textContent = 'حذف';
+    del.addEventListener('click', () => deleteProduct(p.id));
+
+    actions.append(edit,del);
+    item.append(title,details,summary,actions);
+    history.append(item);
+  });
+}
+
+$('productForm').addEventListener('submit', event => {
+  event.preventDefault();
+
+  const quantity = number($('quantity').value);
+  if (!quantity || quantity < 1) {
+    alert('تعداد محصول سالم باید حداقل یک باشد.');
+    return;
+  }
+
+  const product = {
+    id: editingId || String(Date.now()),
+    name: $('name').value.trim(),
+    material: number($('material').value),
+    labor: number($('labor').value),
+    overhead: number($('overhead').value),
+    quantity
+  };
+
+  if (!product.name) return;
+
+  if (editingId) {
+    products = products.map(p => p.id === editingId ? product : p);
+  } else {
+    products.unshift(product);
+  }
+
+  persist();
+  resetForm();
+  render();
+});
+
+function editProduct(id) {
+  const p = products.find(x => x.id === id);
+  if (!p) return;
+
+  editingId = id;
+  $('name').value = p.name;
+  $('material').value = p.material;
+  $('labor').value = p.labor;
+  $('overhead').value = p.overhead;
+  $('quantity').value = p.quantity;
+
+  $('formTitle').textContent = 'ویرایش محصول';
+  $('saveButton').textContent = 'ذخیره تغییرات';
+  $('cancelEdit').hidden = false;
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+
+function deleteProduct(id) {
+  if (!confirm('این محصول حذف شود؟')) return;
+  products = products.filter(p => p.id !== id);
+  persist();
+  if (editingId === id) resetForm();
+  render();
+}
+
+$('cancelEdit').addEventListener('click', resetForm);
+
+render();
+</script>
+</body>
+</html>
