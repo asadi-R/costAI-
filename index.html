@@ -7,223 +7,203 @@
 <title>محاسبه بهای تمام‌شده</title>
 <style>
 *{box-sizing:border-box}
-body{margin:0;background:#f3f7f3;color:#20352a;font-family:Tahoma,Arial,sans-serif;padding:18px}
-main{max-width:650px;margin:auto}
-header{background:#167447;color:white;padding:25px 18px;border-radius:18px;margin-bottom:18px}
-h1{font-size:23px;margin:0 0 9px}
-header p{margin:0;font-size:14px}
-.card{background:white;border-radius:15px;padding:18px;margin-bottom:16px;box-shadow:0 3px 14px #163c2410}
-h2{font-size:18px;margin:0 0 17px}
-label{display:block;font-size:13px;margin:13px 0 7px}
-input{width:100%;padding:12px;border:1px solid #d6e1d9;border-radius:9px;font-size:16px;background:#fff}
-button{border:0;border-radius:9px;padding:12px 16px;font-size:14px;cursor:pointer}
-.primary{background:#167447;color:white;width:100%;margin-top:17px}
-.secondary{background:#e6f2e9;color:#17623d}
-.danger{background:#fdeaea;color:#a22}
-.stats{display:grid;grid-template-columns:1fr 1fr;gap:10px}
-.stat{background:#eaf5ed;padding:16px;border-radius:12px}
-.stat small{display:block;color:#587263;margin-bottom:8px}
-.stat strong{font-size:18px}
-.item{border:1px solid #e2eae4;padding:13px;border-radius:11px;margin-top:12px}
-.item h3{margin:0 0 9px;font-size:16px}
-.item p{font-size:13px;line-height:2;margin:0}
-.actions{display:flex;gap:8px;margin-top:10px}
+body{margin:0;background:#f2f7f3;color:#26372c;font-family:Tahoma}
+header{background:#16834b;color:white;text-align:center;padding:25px}
+main{max-width:800px;margin:20px auto;padding:0 12px}
+.card{background:white;border-radius:14px;padding:18px;margin-bottom:16px}
+h2{font-size:17px;color:#16834b}
+.grid,.stats{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+label{display:block;font-size:13px;margin:12px 0 6px}
+input{width:100%;padding:12px;border:1px solid #ccdacf;border-radius:8px;font-size:15px;font-family:inherit}
+button{padding:12px;border:0;border-radius:8px;font-family:inherit;cursor:pointer}
+.save{background:#16834b;color:white;width:100%;margin-top:16px}
+.edit{background:#e5f3e9;color:#167744}
+.del{background:#ffeded;color:#b33}
+.stat{background:#eff7f1;padding:13px;border-radius:9px}
+.stat small{display:block;font-size:12px;margin-bottom:8px}
+.stat strong{color:#16834b;overflow-wrap:anywhere}
+.item{border:1px solid #ddd;border-radius:10px;padding:13px;margin-top:12px}
+.item p{font-size:13px;line-height:1.8}
+.actions{display:flex;gap:8px}
 .actions button{flex:1}
-.empty{text-align:center;color:#819087;padding:20px}
-.note{font-size:12px;color:#718078;line-height:1.9}
+@media(max-width:480px){.grid{grid-template-columns:1fr}}
 </style>
 </head>
 <body>
-<main>
 <header>
 <h1>محاسبه بهای تمام‌شده</h1>
-<p>مدیریت هزینه و محاسبه دقیق بهای محصولات تولیدی</p>
+<p>مدیریت هزینه و محاسبه بهای تولید</p>
 </header>
-
+<main>
 <section class="card">
 <h2 id="formTitle">ثبت محصول جدید</h2>
-<form id="productForm">
+<form id="form">
 <label>نام محصول</label>
-<input id="name" required placeholder="مثلاً میز چوبی">
-<label>هزینه مواد اولیه (ریال)</label>
-<input id="material" type="number" min="0" value="0" required>
-<label>دستمزد مستقیم (ریال)</label>
-<input id="labor" type="number" min="0" value="0" required>
-<label>هزینه سربار (ریال)</label>
-<input id="overhead" type="number" min="0" value="0" required>
-<label>تعداد محصول سالم</label>
-<input id="quantity" type="number" min="1" step="1" required placeholder="مثلاً 10">
-<button class="primary" type="submit" id="saveButton">ذخیره محصول</button>
-<button class="secondary" type="button" id="cancelEdit" hidden>لغو ویرایش</button>
+<input id="name" required placeholder="نام محصول">
+<div class="grid">
+<div><label>هزینه مواد اولیه (ریال)</label><input id="materials" class="num" inputmode="numeric" required></div>
+<div><label>دستمزد مستقیم (ریال)</label><input id="labor" class="num" inputmode="numeric" required></div>
+<div><label>هزینه سربار (ریال)</label><input id="overhead" class="num" inputmode="numeric" required></div>
+<div><label>تعداد محصول سالم</label><input id="quantity" class="num" inputmode="numeric" required></div>
+</div>
+<button class="save" id="submit" type="submit">ثبت و محاسبه</button>
+<button class="edit" id="cancel" type="button" hidden>لغو ویرایش</button>
 </form>
 </section>
-
 <section class="card">
-<h2>خلاصه هزینه‌ها</h2>
+<h2>خلاصه گزارش</h2>
 <div class="stats">
-<div class="stat"><small>مجموع هزینه‌ها</small><strong id="totalCost">۰ ریال</strong></div>
-<div class="stat"><small>تعداد محصولات</small><strong id="productCount">۰</strong></div>
-<div class="stat"><small>مجموع تعداد سالم</small><strong id="totalQuantity">۰</strong></div>
-<div class="stat"><small>میانگین بهای واحد</small><strong id="averageCost">۰ ریال</strong></div>
+<div class="stat"><small>تعداد محصولات</small><strong id="count">۰</strong></div>
+<div class="stat"><small>مجموع تعداد سالم</small><strong id="qty">۰</strong></div>
+<div class="stat"><small>مجموع هزینه تولید (ریال)</small><strong id="cost">۰</strong></div>
+<div class="stat"><small>میانگین بهای واحد (ریال)</small><strong id="average">۰</strong></div>
 </div>
 </section>
-
 <section class="card">
 <h2>سوابق محصولات</h2>
-<div id="history"><div class="empty">هنوز محصولی ثبت نشده است.</div></div>
+<div id="history">هنوز محصولی ثبت نشده است.</div>
 </section>
-
-<p class="note">اطلاعات این نسخه آزمایشی در حافظه مرورگر همین دستگاه ذخیره می‌شود. با پاک‌کردن داده‌های مرورگر ممکن است اطلاعات از بین برود. فعلاً همگام‌سازی بین دستگاه‌ها فعال نیست.</p>
 </main>
-
 <script>
-const $ = id => document.getElementById(id);
-const number = value => Number(value || 0);
-const format = value => Math.round(value).toLocaleString('fa-IR');
+const $=id=>document.getElementById(id);
+const fmt=new Intl.NumberFormat('fa-IR');
+const key='costai_products';
+let products=[];
+let editing=null;
 
-let products = [];
-let editingId = null;
-
-try {
-  products = JSON.parse(localStorage.getItem('costai_products') || '[]');
-  if (!Array.isArray(products)) products = [];
-} catch {
-  products = [];
+function eng(v){
+ return String(v).replace(/[۰-۹]/g,d=>'۰۱۲۳۴۵۶۷۸۹'.indexOf(d))
+ .replace(/[٠-٩]/g,d=>'٠١٢٣٤٥٦٧٨٩'.indexOf(d));
 }
-
-function persist() {
-  localStorage.setItem('costai_products', JSON.stringify(products));
+function val(v){
+ return Number(eng(v).replace(/[^\d]/g,''))||0;
 }
+function num(v){return fmt.format(Math.round(v||0));}
 
-function resetForm() {
-  $('productForm').reset();
-  $('material').value = 0;
-  $('labor').value = 0;
-  $('overhead').value = 0;
-  editingId = null;
-  $('formTitle').textContent = 'ثبت محصول جدید';
-  $('saveButton').textContent = 'ذخیره محصول';
-  $('cancelEdit').hidden = true;
-}
-
-function render() {
-  const total = products.reduce((s,p) => s+p.material+p.labor+p.overhead,0);
-  const quantity = products.reduce((s,p) => s+p.quantity,0);
-
-  $('totalCost').textContent = format(total) + ' ریال';
-  $('productCount').textContent = format(products.length);
-  $('totalQuantity').textContent = format(quantity);
-  $('averageCost').textContent = format(quantity ? total/quantity : 0) + ' ریال';
-
-  const history = $('history');
-  history.replaceChildren();
-
-  if (!products.length) {
-    const empty = document.createElement('div');
-    empty.className = 'empty';
-    empty.textContent = 'هنوز محصولی ثبت نشده است.';
-    history.append(empty);
-    return;
-  }
-
-  products.forEach(p => {
-    const totalCost = p.material+p.labor+p.overhead;
-    const item = document.createElement('div');
-    item.className = 'item';
-
-    const title = document.createElement('h3');
-    title.textContent = p.name;
-
-    const details = document.createElement('p');
-    details.textContent =
-      'مواد اولیه: '+format(p.material)+' ریال' +
-      ' | دستمزد: '+format(p.labor)+' ریال' +
-      ' | سربار: '+format(p.overhead)+' ریال';
-
-    const summary = document.createElement('p');
-    summary.textContent =
-      'تعداد سالم: '+format(p.quantity) +
-      ' | مجموع هزینه: '+format(totalCost)+' ریال' +
-      ' | بهای هر واحد: '+format(totalCost/p.quantity)+' ریال';
-
-    const actions = document.createElement('div');
-    actions.className = 'actions';
-
-    const edit = document.createElement('button');
-    edit.className = 'secondary';
-    edit.textContent = 'ویرایش';
-    edit.addEventListener('click', () => editProduct(p.id));
-
-    const del = document.createElement('button');
-    del.className = 'danger';
-    del.textContent = 'حذف';
-    del.addEventListener('click', () => deleteProduct(p.id));
-
-    actions.append(edit,del);
-    item.append(title,details,summary,actions);
-    history.append(item);
-  });
-}
-
-$('productForm').addEventListener('submit', event => {
-  event.preventDefault();
-
-  const quantity = number($('quantity').value);
-  if (!quantity || quantity < 1) {
-    alert('تعداد محصول سالم باید حداقل یک باشد.');
-    return;
-  }
-
-  const product = {
-    id: editingId || String(Date.now()),
-    name: $('name').value.trim(),
-    material: number($('material').value),
-    labor: number($('labor').value),
-    overhead: number($('overhead').value),
-    quantity
-  };
-
-  if (!product.name) return;
-
-  if (editingId) {
-    products = products.map(p => p.id === editingId ? product : p);
-  } else {
-    products.unshift(product);
-  }
-
-  persist();
-  resetForm();
-  render();
+document.querySelectorAll('.num').forEach(el=>{
+ el.addEventListener('input',()=>{
+  let v=eng(el.value).replace(/[^\d]/g,'');
+  el.value=v?num(Number(v)):'';
+ });
 });
 
-function editProduct(id) {
-  const p = products.find(x => x.id === id);
-  if (!p) return;
-
-  editingId = id;
-  $('name').value = p.name;
-  $('material').value = p.material;
-  $('labor').value = p.labor;
-  $('overhead').value = p.overhead;
-  $('quantity').value = p.quantity;
-
-  $('formTitle').textContent = 'ویرایش محصول';
-  $('saveButton').textContent = 'ذخیره تغییرات';
-  $('cancelEdit').hidden = false;
-  window.scrollTo({top:0,behavior:'smooth'});
+function store(){
+ localStorage.setItem(key,JSON.stringify(products));
 }
 
-function deleteProduct(id) {
-  if (!confirm('این محصول حذف شود؟')) return;
-  products = products.filter(p => p.id !== id);
-  persist();
-  if (editingId === id) resetForm();
-  render();
+function render(){
+ $('count').textContent=num(products.length);
+ let q=products.reduce((s,p)=>s+p.quantity,0);
+ let c=products.reduce((s,p)=>s+p.total,0);
+ $('qty').textContent=num(q);
+ $('cost').textContent=num(c);
+ $('average').textContent=num(q?c/q:0);
+ $('history').innerHTML='';
+
+ if(!products.length){
+  $('history').textContent='هنوز محصولی ثبت نشده است.';
+  return;
+ }
+
+ products.forEach(p=>{
+  let box=document.createElement('div');
+  box.className='item';
+  let h=document.createElement('h3');
+  h.textContent=p.name;
+  box.append(h);
+
+  [
+   ['مواد اولیه',p.materials],
+   ['دستمزد مستقیم',p.labor],
+   ['سربار',p.overhead],
+   ['تعداد سالم',p.quantity],
+   ['مجموع هزینه (ریال)',p.total],
+   ['بهای هر واحد (ریال)',p.quantity?p.total/p.quantity:0]
+  ].forEach(([label,value])=>{
+   let row=document.createElement('p');
+   row.textContent=label+' : '+num(value);
+   box.append(row);
+  });
+
+  let actions=document.createElement('div');
+  actions.className='actions';
+  let e=document.createElement('button');
+  e.className='edit';
+  e.textContent='ویرایش';
+  e.onclick=()=>edit(p.id);
+  let d=document.createElement('button');
+  d.className='del';
+  d.textContent='حذف';
+  d.onclick=()=>remove(p.id);
+  actions.append(e,d);
+  box.append(actions);
+  $('history').append(box);
+ });
 }
 
-$('cancelEdit').addEventListener('click', resetForm);
+$('form').addEventListener('submit',e=>{
+ e.preventDefault();
+ let name=$('name').value.trim();
+ let materials=val($('materials').value);
+ let labor=val($('labor').value);
+ let overhead=val($('overhead').value);
+ let quantity=val($('quantity').value);
+ if(!name||quantity<1){
+  alert('نام محصول و تعداد سالم معتبر وارد کنید.');
+  return;
+ }
+ let p={
+  id:editing||Date.now(),
+  name,materials,labor,overhead,quantity,
+  total:materials+labor+overhead
+ };
+ if(editing){
+  products=products.map(x=>x.id===editing?p:x);
+ }else{
+  products.unshift(p);
+ }
+ store();
+ reset();
+ render();
+});
 
+function edit(id){
+ let p=products.find(x=>x.id===id);
+ if(!p)return;
+ editing=id;
+ $('name').value=p.name;
+ $('materials').value=num(p.materials);
+ $('labor').value=num(p.labor);
+ $('overhead').value=num(p.overhead);
+ $('quantity').value=num(p.quantity);
+ $('formTitle').textContent='ویرایش محصول';
+ $('submit').textContent='ذخیره تغییرات';
+ $('cancel').hidden=false;
+ window.scrollTo({top:0,behavior:'smooth'});
+}
+
+function remove(id){
+ if(!confirm('این محصول حذف شود؟'))return;
+ products=products.filter(p=>p.id!==id);
+ store();
+ render();
+}
+
+function reset(){
+ editing=null;
+ $('form').reset();
+ $('formTitle').textContent='ثبت محصول جدید';
+ $('submit').textContent='ثبت و محاسبه';
+ $('cancel').hidden=true;
+}
+$('cancel').onclick=reset;
+
+try{
+ products=JSON.parse(localStorage.getItem(key)||'[]');
+ if(!Array.isArray(products))products=[];
+}catch(e){products=[];}
 render();
 </script>
 </body>
 </html>
+
